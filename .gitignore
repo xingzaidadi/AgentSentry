@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 运行时产物
+*.db
+trace_*.json
+trace.json
+
+# 保留 reports/ 下的样例报告（作品证据），忽略临时报告
+reports/tmp_*.md
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
