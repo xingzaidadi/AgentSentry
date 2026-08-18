@@ -16,7 +16,10 @@
 
 设计约束：AgentSentry 与 mini-mico 互不 import 源码，只经 export_trace() 的 JSON 契约耦合。
 本测试是"集成夹具"，允许同时 import 两侧来驱动闭环；两个框架自身仍解耦。
-不依赖 pytest（零依赖原则）；任一断言失败即抛 AssertionError，退出码非0。
+两种跑法皆可：
+  · 零依赖直跑：`python tests/test_closed_loop.py`（任一断言失败即抛 AssertionError，退出码非0）
+  · pytest 收集：`pytest tests/test_closed_loop.py`（执行下方 test_closed_loop 入口）
+零依赖原则保持不变——不 import pytest，仅提供一个 test_ 前缀函数供其收集。
 """
 import os
 import sys
@@ -142,6 +145,11 @@ def main():
 
     print("\n闭环冒烟测试全部通过 ✅  —— 造平台 + 造框架测它，三档裁决(PASS/CONDITIONAL/FAIL)全覆盖，"
           "红线(D3/D6)与非红线(D4/D10)负例均真能判出；二期三维(D1/D8/D12)负例亦真触发。")
+
+
+def test_closed_loop():
+    """pytest 收集入口：等价于直接跑本文件。断言失败会被 pytest 标红。"""
+    main()
 
 
 if __name__ == "__main__":
