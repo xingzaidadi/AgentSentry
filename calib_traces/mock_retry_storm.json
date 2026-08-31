@@ -1,0 +1,519 @@
+{
+  "task": {
+    "id": "task_733393f7",
+    "readable_id": "T-01",
+    "title": "mock_retry_storm",
+    "spec": "decompose:造一条订单[retry_storm]|造一条订阅",
+    "status": "done",
+    "mode": "squad"
+  },
+  "agents": [
+    {
+      "id": "agent_dc128f79",
+      "name": "队长",
+      "role": "captain",
+      "visibility": "public",
+      "engine": "mock",
+      "run_count": 2
+    },
+    {
+      "id": "agent_b72d999f",
+      "name": "准入体检",
+      "role": "gatekeeper",
+      "visibility": "public",
+      "engine": "mock",
+      "run_count": 2
+    },
+    {
+      "id": "agent_f23f4630",
+      "name": "数据清洗",
+      "role": "cleaner",
+      "visibility": "public",
+      "engine": "mock",
+      "run_count": 0
+    },
+    {
+      "id": "agent_17de139a",
+      "name": "执行",
+      "role": "executor",
+      "visibility": "public",
+      "engine": "mock",
+      "run_count": 4
+    },
+    {
+      "id": "agent_36a7d20b",
+      "name": "查数",
+      "role": "checker",
+      "visibility": "public",
+      "engine": "mock",
+      "run_count": 2
+    }
+  ],
+  "issues": [
+    {
+      "id": "issue_7af7dab3",
+      "seq": 1,
+      "subspec": "造一条订单[retry_storm]",
+      "status": "accepted",
+      "attempts": 3,
+      "batch_group": null,
+      "batch_index": null,
+      "batch_total": null
+    },
+    {
+      "id": "issue_9b9cedc3",
+      "seq": 2,
+      "subspec": "造一条订阅",
+      "status": "accepted",
+      "attempts": 1,
+      "batch_group": null,
+      "batch_index": null,
+      "batch_total": null
+    }
+  ],
+  "runs": [
+    {
+      "id": "run_26605531",
+      "agent_role": "captain",
+      "engine": "mock",
+      "issue_id": null,
+      "agent_id": "agent_dc128f79",
+      "parent_run_id": null,
+      "status": "done",
+      "result": "[\"造一条订单[retry_storm]\", \"造一条订阅\"]",
+      "events": [
+        {
+          "ts": "2026-08-31T08:53:03.609347+00:00",
+          "type": "decompose",
+          "payload": {
+            "spec": "decompose:造一条订单[retry_storm]|造一条订阅",
+            "subtasks": [
+              "造一条订单[retry_storm]",
+              "造一条订阅"
+            ],
+            "count": 2
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_62529f56",
+      "agent_role": "gatekeeper",
+      "engine": "mock",
+      "issue_id": "issue_7af7dab3",
+      "agent_id": "agent_b72d999f",
+      "parent_run_id": "run_26605531",
+      "status": "done",
+      "result": "admitted",
+      "events": [
+        {
+          "ts": "2026-08-31T08:53:03.630931+00:00",
+          "type": "admission",
+          "payload": {
+            "result": "pass",
+            "reason": "上游依赖齐备",
+            "route": "executor"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:03.633851+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "gatekeeper",
+            "to": "executor",
+            "marker": "[准入通过]",
+            "issue_id": "issue_7af7dab3"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_ffef00a8",
+      "agent_role": "executor",
+      "engine": "mock",
+      "issue_id": "issue_7af7dab3",
+      "agent_id": "agent_17de139a",
+      "parent_run_id": null,
+      "status": "failed",
+      "result": "",
+      "events": [
+        {
+          "ts": "2026-08-31T08:53:03.652574+00:00",
+          "type": "error",
+          "payload": {
+            "reason": "运行时环境抖动/超时",
+            "attempt": 1
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:03.656307+00:00",
+          "type": "retry",
+          "payload": {
+            "issue_id": "issue_7af7dab3",
+            "next_attempt": 2
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_a4fdd410",
+      "agent_role": "executor",
+      "engine": "mock",
+      "issue_id": "issue_7af7dab3",
+      "agent_id": "agent_17de139a",
+      "parent_run_id": null,
+      "status": "failed",
+      "result": "",
+      "events": [
+        {
+          "ts": "2026-08-31T08:53:03.669133+00:00",
+          "type": "error",
+          "payload": {
+            "reason": "运行时环境抖动/超时",
+            "attempt": 2
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:03.672485+00:00",
+          "type": "retry",
+          "payload": {
+            "issue_id": "issue_7af7dab3",
+            "next_attempt": 3
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_1e7648d6",
+      "agent_role": "executor",
+      "engine": "mock",
+      "issue_id": "issue_7af7dab3",
+      "agent_id": "agent_17de139a",
+      "parent_run_id": null,
+      "status": "done",
+      "result": "[{\"entity_id\": \"E0408\", \"amount\": 100, \"currency\": \"CNY\", \"status\": \"created\", \"qty\": 1}]",
+      "events": [
+        {
+          "ts": "2026-08-31T08:53:03.690046+00:00",
+          "type": "plan",
+          "payload": {
+            "role": "executor",
+            "subspec": "造一条订单[retry_storm]",
+            "attempt": 3
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:03.694542+00:00",
+          "type": "tool_call",
+          "payload": {
+            "role": "executor",
+            "tool": "create_record",
+            "args": {
+              "entity_id": "E0408",
+              "amount": 100,
+              "currency": "CNY",
+              "status": "created",
+              "qty": 1
+            }
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:03.701723+00:00",
+          "type": "write_testdb",
+          "payload": {
+            "record_key": "E0408",
+            "record": {
+              "entity_id": "E0408",
+              "amount": 100,
+              "currency": "CNY",
+              "status": "created",
+              "qty": 1
+            },
+            "written_by": "executor"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:03.708918+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "executor",
+            "to": "checker",
+            "marker": "[执行完成]",
+            "issue_id": "issue_7af7dab3"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 18,
+        "output": 20,
+        "tool_calls": 1
+      }
+    },
+    {
+      "id": "run_3ad72620",
+      "agent_role": "checker",
+      "engine": "mock",
+      "issue_id": "issue_7af7dab3",
+      "agent_id": "agent_36a7d20b",
+      "parent_run_id": "run_26605531",
+      "status": "done",
+      "result": "checked_pass",
+      "events": [
+        {
+          "ts": "2026-08-31T08:53:03.715796+00:00",
+          "type": "verify",
+          "payload": {
+            "matched": true,
+            "verified_against": "test_records",
+            "field_matched": true,
+            "business_ok": true,
+            "expected_key": "E0408",
+            "actual_count": 1
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:03.727889+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "checker",
+            "to": "captain",
+            "marker": "[查数完成]",
+            "issue_id": "issue_7af7dab3"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_6208f15a",
+      "agent_role": "gatekeeper",
+      "engine": "mock",
+      "issue_id": "issue_9b9cedc3",
+      "agent_id": "agent_b72d999f",
+      "parent_run_id": "run_26605531",
+      "status": "done",
+      "result": "admitted",
+      "events": [
+        {
+          "ts": "2026-08-31T08:53:03.735515+00:00",
+          "type": "admission",
+          "payload": {
+            "result": "pass",
+            "reason": "上游依赖齐备",
+            "route": "executor"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:03.739187+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "gatekeeper",
+            "to": "executor",
+            "marker": "[准入通过]",
+            "issue_id": "issue_9b9cedc3"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_fb5a7db0",
+      "agent_role": "executor",
+      "engine": "mock",
+      "issue_id": "issue_9b9cedc3",
+      "agent_id": "agent_17de139a",
+      "parent_run_id": null,
+      "status": "done",
+      "result": "[{\"entity_id\": \"E7480\", \"amount\": 100, \"currency\": \"CNY\", \"status\": \"created\", \"qty\": 1}]",
+      "events": [
+        {
+          "ts": "2026-08-31T08:53:03.762937+00:00",
+          "type": "plan",
+          "payload": {
+            "role": "executor",
+            "subspec": "造一条订阅",
+            "attempt": 1
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:03.767237+00:00",
+          "type": "tool_call",
+          "payload": {
+            "role": "executor",
+            "tool": "create_record",
+            "args": {
+              "entity_id": "E7480",
+              "amount": 100,
+              "currency": "CNY",
+              "status": "created",
+              "qty": 1
+            }
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:03.775283+00:00",
+          "type": "write_testdb",
+          "payload": {
+            "record_key": "E7480",
+            "record": {
+              "entity_id": "E7480",
+              "amount": 100,
+              "currency": "CNY",
+              "status": "created",
+              "qty": 1
+            },
+            "written_by": "executor"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:03.782293+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "executor",
+            "to": "checker",
+            "marker": "[执行完成]",
+            "issue_id": "issue_9b9cedc3"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 5,
+        "output": 20,
+        "tool_calls": 1
+      }
+    },
+    {
+      "id": "run_4070f127",
+      "agent_role": "checker",
+      "engine": "mock",
+      "issue_id": "issue_9b9cedc3",
+      "agent_id": "agent_36a7d20b",
+      "parent_run_id": "run_26605531",
+      "status": "done",
+      "result": "checked_pass",
+      "events": [
+        {
+          "ts": "2026-08-31T08:53:03.789331+00:00",
+          "type": "verify",
+          "payload": {
+            "matched": true,
+            "verified_against": "test_records",
+            "field_matched": true,
+            "business_ok": true,
+            "expected_key": "E7480",
+            "actual_count": 1
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:03.799286+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "checker",
+            "to": "captain",
+            "marker": "[查数完成]",
+            "issue_id": "issue_9b9cedc3"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_5cfc755e",
+      "agent_role": "captain",
+      "engine": "mock",
+      "issue_id": null,
+      "agent_id": "agent_dc128f79",
+      "parent_run_id": null,
+      "status": "done",
+      "result": "accepted:E0408,E7480",
+      "events": [
+        {
+          "ts": "2026-08-31T08:53:03.989215+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "checker",
+            "to": "captain",
+            "marker": "[验收通过]",
+            "issue_id": "issue_7af7dab3"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:03.997039+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "checker",
+            "to": "captain",
+            "marker": "[验收通过]",
+            "issue_id": "issue_9b9cedc3"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    }
+  ],
+  "test_records": [
+    {
+      "issue_id": "issue_7af7dab3",
+      "record_key": "E0408",
+      "record": {
+        "entity_id": "E0408",
+        "amount": 100,
+        "currency": "CNY",
+        "status": "created",
+        "qty": 1
+      },
+      "written_by": "executor"
+    },
+    {
+      "issue_id": "issue_9b9cedc3",
+      "record_key": "E7480",
+      "record": {
+        "entity_id": "E7480",
+        "amount": 100,
+        "currency": "CNY",
+        "status": "created",
+        "qty": 1
+      },
+      "written_by": "executor"
+    }
+  ],
+  "final_state": {
+    "merged": "accepted:E0408,E7480"
+  }
+}

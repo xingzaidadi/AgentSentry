@@ -1,0 +1,596 @@
+{
+  "task": {
+    "id": "task_081aba96",
+    "readable_id": "T-01",
+    "title": "真实LLM造数",
+    "spec": "为跨境电商造一条已支付订单",
+    "status": "rejected",
+    "mode": "squad"
+  },
+  "agents": [
+    {
+      "id": "agent_b609aace",
+      "name": "队长",
+      "role": "captain",
+      "visibility": "public",
+      "engine": "openai",
+      "run_count": 2
+    },
+    {
+      "id": "agent_a2b0551c",
+      "name": "准入体检",
+      "role": "gatekeeper",
+      "visibility": "public",
+      "engine": "openai",
+      "run_count": 3
+    },
+    {
+      "id": "agent_75c85099",
+      "name": "数据清洗",
+      "role": "cleaner",
+      "visibility": "public",
+      "engine": "openai",
+      "run_count": 0
+    },
+    {
+      "id": "agent_9b099c8b",
+      "name": "执行",
+      "role": "executor",
+      "visibility": "public",
+      "engine": "openai",
+      "run_count": 3
+    },
+    {
+      "id": "agent_893683c0",
+      "name": "查数",
+      "role": "checker",
+      "visibility": "public",
+      "engine": "openai",
+      "run_count": 3
+    }
+  ],
+  "issues": [
+    {
+      "id": "issue_d65f682d",
+      "seq": 1,
+      "subspec": "创建一条包含订单编号、用户信息、商品详情和支付状态的已支付订单记录。",
+      "status": "checked_fail",
+      "attempts": 1,
+      "batch_group": null,
+      "batch_index": null,
+      "batch_total": null
+    },
+    {
+      "id": "issue_d166f659",
+      "seq": 2,
+      "subspec": "生成一条包含订单金额、支付方式、支付时间和发货地址的已支付订单记录。",
+      "status": "checked_fail",
+      "attempts": 1,
+      "batch_group": null,
+      "batch_index": null,
+      "batch_total": null
+    },
+    {
+      "id": "issue_fd9ffab1",
+      "seq": 3,
+      "subspec": "记录一条包含订单状态、物流信息和预计送达时间的已支付订单记录。",
+      "status": "checked_fail",
+      "attempts": 1,
+      "batch_group": null,
+      "batch_index": null,
+      "batch_total": null
+    }
+  ],
+  "runs": [
+    {
+      "id": "run_48f7d1aa",
+      "agent_role": "captain",
+      "engine": "openai",
+      "issue_id": null,
+      "agent_id": "agent_b609aace",
+      "parent_run_id": null,
+      "status": "done",
+      "result": "[\"创建一条包含订单编号、用户信息、商品详情和支付状态的已支付订单记录。\", \"生成一条包含订单金额、支付方式、支付时间和发货地址的已支付订单记录。\", \"记录一条包含订单状态、物流信息和预计送达时间的已支付订单记录。\"]",
+      "events": [
+        {
+          "ts": "2026-08-31T08:47:47.456690+00:00",
+          "type": "decompose",
+          "payload": {
+            "spec": "为跨境电商造一条已支付订单",
+            "subtasks": [
+              "创建一条包含订单编号、用户信息、商品详情和支付状态的已支付订单记录。",
+              "生成一条包含订单金额、支付方式、支付时间和发货地址的已支付订单记录。",
+              "记录一条包含订单状态、物流信息和预计送达时间的已支付订单记录。"
+            ],
+            "count": 3,
+            "engine": "openai",
+            "model": "ppio/gpt-4o-mini"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_fbd0bb89",
+      "agent_role": "gatekeeper",
+      "engine": "openai",
+      "issue_id": "issue_d65f682d",
+      "agent_id": "agent_a2b0551c",
+      "parent_run_id": "run_48f7d1aa",
+      "status": "done",
+      "result": "admitted",
+      "events": [
+        {
+          "ts": "2026-08-31T08:47:47.481742+00:00",
+          "type": "admission",
+          "payload": {
+            "result": "pass",
+            "reason": "上游依赖齐备",
+            "route": "executor"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:47:47.485802+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "gatekeeper",
+            "to": "executor",
+            "marker": "[准入通过]",
+            "issue_id": "issue_d65f682d"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_10266371",
+      "agent_role": "executor",
+      "engine": "openai",
+      "issue_id": "issue_d65f682d",
+      "agent_id": "agent_9b099c8b",
+      "parent_run_id": null,
+      "status": "done",
+      "result": "[{\"entity_id\": \"E6322\", \"amount\": 150, \"currency\": \"USD\", \"qty\": 2, \"status\": \"paid\"}]",
+      "events": [
+        {
+          "ts": "2026-08-31T08:47:47.513115+00:00",
+          "type": "plan",
+          "payload": {
+            "role": "executor",
+            "subspec": "创建一条包含订单编号、用户信息、商品详情和支付状态的已支付订单记录。",
+            "attempt": 1,
+            "engine": "openai",
+            "model": "ppio/gpt-4o-mini"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:47:50.886161+00:00",
+          "type": "tool_call",
+          "payload": {
+            "role": "executor",
+            "tool": "create_record",
+            "args": {
+              "entity_id": "E6322",
+              "amount": 150,
+              "currency": "USD",
+              "qty": 2,
+              "status": "paid"
+            }
+          }
+        },
+        {
+          "ts": "2026-08-31T08:47:50.895123+00:00",
+          "type": "write_testdb",
+          "payload": {
+            "record_key": "E6322",
+            "record": {
+              "entity_id": "E6322",
+              "amount": 150,
+              "currency": "USD",
+              "qty": 2,
+              "status": "paid"
+            },
+            "written_by": "executor"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:47:50.905415+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "executor",
+            "to": "checker",
+            "marker": "[执行完成]",
+            "issue_id": "issue_d65f682d"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 34,
+        "output": 20,
+        "tool_calls": 1
+      }
+    },
+    {
+      "id": "run_38bdc615",
+      "agent_role": "checker",
+      "engine": "openai",
+      "issue_id": "issue_d65f682d",
+      "agent_id": "agent_893683c0",
+      "parent_run_id": "run_48f7d1aa",
+      "status": "done",
+      "result": "checked_fail",
+      "events": [
+        {
+          "ts": "2026-08-31T08:47:50.914995+00:00",
+          "type": "verify",
+          "payload": {
+            "matched": false,
+            "verified_against": "test_records",
+            "field_matched": false,
+            "business_ok": true,
+            "expected_key": "E6322",
+            "actual_count": 1
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_0453a51b",
+      "agent_role": "gatekeeper",
+      "engine": "openai",
+      "issue_id": "issue_d166f659",
+      "agent_id": "agent_a2b0551c",
+      "parent_run_id": "run_48f7d1aa",
+      "status": "done",
+      "result": "admitted",
+      "events": [
+        {
+          "ts": "2026-08-31T08:47:50.932337+00:00",
+          "type": "admission",
+          "payload": {
+            "result": "pass",
+            "reason": "上游依赖齐备",
+            "route": "executor"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:47:50.936647+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "gatekeeper",
+            "to": "executor",
+            "marker": "[准入通过]",
+            "issue_id": "issue_d166f659"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_f4caf4bd",
+      "agent_role": "executor",
+      "engine": "openai",
+      "issue_id": "issue_d166f659",
+      "agent_id": "agent_9b099c8b",
+      "parent_run_id": null,
+      "status": "done",
+      "result": "[{\"entity_id\": \"E3318\", \"amount\": 150, \"currency\": \"USD\", \"qty\": 2, \"status\": \"paid\"}]",
+      "events": [
+        {
+          "ts": "2026-08-31T08:47:50.966660+00:00",
+          "type": "plan",
+          "payload": {
+            "role": "executor",
+            "subspec": "生成一条包含订单金额、支付方式、支付时间和发货地址的已支付订单记录。",
+            "attempt": 1,
+            "engine": "openai",
+            "model": "ppio/gpt-4o-mini"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:47:54.402407+00:00",
+          "type": "tool_call",
+          "payload": {
+            "role": "executor",
+            "tool": "create_record",
+            "args": {
+              "entity_id": "E3318",
+              "amount": 150,
+              "currency": "USD",
+              "qty": 2,
+              "status": "paid"
+            }
+          }
+        },
+        {
+          "ts": "2026-08-31T08:47:54.411206+00:00",
+          "type": "write_testdb",
+          "payload": {
+            "record_key": "E3318",
+            "record": {
+              "entity_id": "E3318",
+              "amount": 150,
+              "currency": "USD",
+              "qty": 2,
+              "status": "paid"
+            },
+            "written_by": "executor"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:47:54.418885+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "executor",
+            "to": "checker",
+            "marker": "[执行完成]",
+            "issue_id": "issue_d166f659"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 34,
+        "output": 20,
+        "tool_calls": 1
+      }
+    },
+    {
+      "id": "run_0a5358ad",
+      "agent_role": "checker",
+      "engine": "openai",
+      "issue_id": "issue_d166f659",
+      "agent_id": "agent_893683c0",
+      "parent_run_id": "run_48f7d1aa",
+      "status": "done",
+      "result": "checked_fail",
+      "events": [
+        {
+          "ts": "2026-08-31T08:47:54.427051+00:00",
+          "type": "verify",
+          "payload": {
+            "matched": false,
+            "verified_against": "test_records",
+            "field_matched": false,
+            "business_ok": true,
+            "expected_key": "E3318",
+            "actual_count": 1
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_4ee1f845",
+      "agent_role": "gatekeeper",
+      "engine": "openai",
+      "issue_id": "issue_fd9ffab1",
+      "agent_id": "agent_a2b0551c",
+      "parent_run_id": "run_48f7d1aa",
+      "status": "done",
+      "result": "admitted",
+      "events": [
+        {
+          "ts": "2026-08-31T08:47:54.442702+00:00",
+          "type": "admission",
+          "payload": {
+            "result": "pass",
+            "reason": "上游依赖齐备",
+            "route": "executor"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:47:54.446298+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "gatekeeper",
+            "to": "executor",
+            "marker": "[准入通过]",
+            "issue_id": "issue_fd9ffab1"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_c79389d9",
+      "agent_role": "executor",
+      "engine": "openai",
+      "issue_id": "issue_fd9ffab1",
+      "agent_id": "agent_9b099c8b",
+      "parent_run_id": null,
+      "status": "done",
+      "result": "[{\"entity_id\": \"E9700\", \"amount\": 150, \"currency\": \"USD\", \"qty\": 2, \"status\": \"paid\"}]",
+      "events": [
+        {
+          "ts": "2026-08-31T08:47:54.478100+00:00",
+          "type": "plan",
+          "payload": {
+            "role": "executor",
+            "subspec": "记录一条包含订单状态、物流信息和预计送达时间的已支付订单记录。",
+            "attempt": 1,
+            "engine": "openai",
+            "model": "ppio/gpt-4o-mini"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:49:02.211549+00:00",
+          "type": "tool_call",
+          "payload": {
+            "role": "executor",
+            "tool": "create_record",
+            "args": {
+              "entity_id": "E9700",
+              "amount": 150,
+              "currency": "USD",
+              "qty": 2,
+              "status": "paid"
+            }
+          }
+        },
+        {
+          "ts": "2026-08-31T08:49:02.220627+00:00",
+          "type": "write_testdb",
+          "payload": {
+            "record_key": "E9700",
+            "record": {
+              "entity_id": "E9700",
+              "amount": 150,
+              "currency": "USD",
+              "qty": 2,
+              "status": "paid"
+            },
+            "written_by": "executor"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:49:02.230517+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "executor",
+            "to": "checker",
+            "marker": "[执行完成]",
+            "issue_id": "issue_fd9ffab1"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 31,
+        "output": 20,
+        "tool_calls": 1
+      }
+    },
+    {
+      "id": "run_93dbfd3c",
+      "agent_role": "checker",
+      "engine": "openai",
+      "issue_id": "issue_fd9ffab1",
+      "agent_id": "agent_893683c0",
+      "parent_run_id": "run_48f7d1aa",
+      "status": "done",
+      "result": "checked_fail",
+      "events": [
+        {
+          "ts": "2026-08-31T08:49:02.241260+00:00",
+          "type": "verify",
+          "payload": {
+            "matched": false,
+            "verified_against": "test_records",
+            "field_matched": false,
+            "business_ok": true,
+            "expected_key": "E9700",
+            "actual_count": 1
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_9b873694",
+      "agent_role": "captain",
+      "engine": "mock",
+      "issue_id": null,
+      "agent_id": "agent_b609aace",
+      "parent_run_id": null,
+      "status": "done",
+      "result": "refused",
+      "events": [
+        {
+          "ts": "2026-08-31T08:49:02.824731+00:00",
+          "type": "accept_refused",
+          "payload": {
+            "reason": "未满足验收前置条件（存在非 checked_pass 工单）",
+            "offending": [
+              [
+                "issue_d65f682d",
+                "checked_fail"
+              ],
+              [
+                "issue_d166f659",
+                "checked_fail"
+              ],
+              [
+                "issue_fd9ffab1",
+                "checked_fail"
+              ]
+            ]
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    }
+  ],
+  "test_records": [
+    {
+      "issue_id": "issue_d65f682d",
+      "record_key": "E6322",
+      "record": {
+        "entity_id": "E6322",
+        "amount": 150,
+        "currency": "USD",
+        "qty": 2,
+        "status": "paid"
+      },
+      "written_by": "executor"
+    },
+    {
+      "issue_id": "issue_d166f659",
+      "record_key": "E3318",
+      "record": {
+        "entity_id": "E3318",
+        "amount": 150,
+        "currency": "USD",
+        "qty": 2,
+        "status": "paid"
+      },
+      "written_by": "executor"
+    },
+    {
+      "issue_id": "issue_fd9ffab1",
+      "record_key": "E9700",
+      "record": {
+        "entity_id": "E9700",
+        "amount": 150,
+        "currency": "USD",
+        "qty": 2,
+        "status": "paid"
+      },
+      "written_by": "executor"
+    }
+  ],
+  "final_state": {
+    "merged": null
+  }
+}

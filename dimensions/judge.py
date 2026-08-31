@@ -27,6 +27,44 @@ class JudgeResult:
     source: str         # "stub" | "llm"
 
 
+def summarize_trace(trace: dict) -> dict:
+    """把 trace 压成 judge 需要的紧凑事实，避免整包塞进 prompt。两种真 judge 共用。"""
+    verifies = [ev["payload"] for run in trace["runs"] for ev in run["events"]
+                if ev["type"] == "verify"]
+    return {
+        "task_status": trace["task"]["status"],
+        "issues": [{"seq": i["seq"], "status": i["status"], "attempts": i["attempts"]}
+                   for i in trace["issues"]],
+        "verifies": verifies,
+        "n_test_records": len(trace["test_records"]),
+        "n_runs": len(trace["runs"]),
+        "final_state": trace.get("final_state"),
+    }
+
+
+def _judge_prompt(rubric_key: str, trace: dict):
+    """构造 (system, user) prompt。两种真 judge 共用同一 rubric，保证口径一致。"""
+    rubric = RUBRICS[rubric_key]
+    facts = json.dumps(summarize_trace(trace), ensure_ascii=False)
+    system = ("你是多 Agent 系统评测的严格评委。只依据给定事实打分，"
+              "严禁臆测。只输出 JSON：{\"score\": 0-1 的小数, \"pass\": true/false, "
+              "\"rationale\": \"一句话中文理由\"}。")
+    user = f"评分标准：\n{rubric}\n\n任务事实(JSON)：\n{facts}"
+    return system, user
+
+
+def _parse_judge_json(text: str) -> JudgeResult:
+    """从模型输出里容错截出第一个 JSON 对象并规范成 JudgeResult。"""
+    text = (text or "").strip()
+    start, end = text.find("{"), text.rfind("}")
+    if start < 0 or end < 0:
+        raise ValueError(f"judge 输出无 JSON：{text[:120]}")
+    data = json.loads(text[start:end + 1])
+    score = max(0.0, min(1.0, float(data["score"])))
+    passed = bool(data.get("pass", score >= PASS_THRESHOLD))
+    return JudgeResult(score, passed, str(data.get("rationale", "")).strip(), "llm")
+
+
 # ---- rubric（可审阅的评分标准；StubJudge 确定性近似，LLMJudge 原样喂给模型）----
 RUBRICS = {
     "d6_terminal": (
@@ -118,20 +156,6 @@ class LLMJudge:
     def __init__(self, model: str = "claude-sonnet-5"):
         self.model = model
 
-    def _summarize(self, trace: dict) -> dict:
-        """把 trace 压成 judge 需要的紧凑事实，避免整包塞进 prompt。"""
-        verifies = [ev["payload"] for run in trace["runs"] for ev in run["events"]
-                    if ev["type"] == "verify"]
-        return {
-            "task_status": trace["task"]["status"],
-            "issues": [{"seq": i["seq"], "status": i["status"], "attempts": i["attempts"]}
-                       for i in trace["issues"]],
-            "verifies": verifies,
-            "n_test_records": len(trace["test_records"]),
-            "n_runs": len(trace["runs"]),
-            "final_state": trace.get("final_state"),
-        }
-
     def __call__(self, rubric_key: str, trace: dict, rule_result) -> JudgeResult:
         try:
             import anthropic  # noqa
@@ -140,26 +164,63 @@ class LLMJudge:
                 "LLMJudge 需要 anthropic SDK；未安装。默认应走 StubJudge——"
                 "检查为何 get_judge() 返回了 LLMJudge。") from e
         client = anthropic.Anthropic()  # 读 ANTHROPIC_API_KEY
-        rubric = RUBRICS[rubric_key]
-        facts = json.dumps(self._summarize(trace), ensure_ascii=False)
-        system = ("你是多 Agent 系统评测的严格评委。只依据给定事实打分，"
-                  "严禁臆测。只输出 JSON：{\"score\": 0-1 的小数, \"pass\": true/false, "
-                  "\"rationale\": \"一句话中文理由\"}。")
-        user = f"评分标准：\n{rubric}\n\n任务事实(JSON)：\n{facts}"
+        system, user = _judge_prompt(rubric_key, trace)
         msg = client.messages.create(
             model=self.model, max_tokens=300,
             system=system, messages=[{"role": "user", "content": user}])
-        text = "".join(b.text for b in msg.content if getattr(b, "type", "") == "text").strip()
-        # 容错：截出第一个 JSON 对象
-        start, end = text.find("{"), text.rfind("}")
-        data = json.loads(text[start:end + 1])
-        score = max(0.0, min(1.0, float(data["score"])))
-        passed = bool(data.get("pass", score >= PASS_THRESHOLD))
-        return JudgeResult(score, passed, str(data.get("rationale", "")).strip(), self.source)
+        text = "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
+        return _parse_judge_json(text)
+
+
+# ======================================================================
+# OpenAiJudge：OpenAI 兼容单 judge（本机实测走 mify/ppio 中转）。
+#   与 LLMJudge 同 rubric、同 prompt、同解析——只换调用后端。
+#   无 openai SDK / 缺 base_url+key 时抛清晰错误，绝不静默伪造分数。
+# ======================================================================
+class OpenAiJudge:
+    source = "llm"
+
+    def __init__(self, model: str = None, timeout: float = 45.0):
+        self.base_url = os.environ.get("OPENAI_BASE_URL", "").strip()
+        self.api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+        self.model = model or os.environ.get("AGENTSENTRY_JUDGE_MODEL", "ppio/gpt-4o-mini")
+        self.timeout = timeout
+        if not self.base_url or not self.api_key:
+            raise RuntimeError(
+                "OpenAiJudge 需要 OPENAI_BASE_URL 和 OPENAI_API_KEY。默认应走 StubJudge。")
+
+    def __call__(self, rubric_key: str, trace: dict, rule_result) -> JudgeResult:
+        try:
+            from openai import OpenAI
+        except ImportError as e:
+            raise RuntimeError("OpenAiJudge 需要 openai SDK；未安装。") from e
+        client = OpenAI(base_url=self.base_url, api_key=self.api_key,
+                        timeout=self.timeout, max_retries=1)
+        system, user = _judge_prompt(rubric_key, trace)
+        resp = client.chat.completions.create(
+            model=self.model, temperature=0, max_tokens=300,
+            messages=[{"role": "system", "content": system},
+                      {"role": "user", "content": user}])
+        return _parse_judge_json(resp.choices[0].message.content)
 
 
 def get_judge():
-    """默认确定性桩；仅当显式 `AGENTSENTRY_JUDGE_LLM=1` 且有 key 时才用真 LLM。"""
-    if os.environ.get("AGENTSENTRY_JUDGE_LLM") == "1" and os.environ.get("ANTHROPIC_API_KEY"):
-        return LLMJudge(model=os.environ.get("AGENTSENTRY_JUDGE_MODEL", "claude-sonnet-5"))
+    """默认确定性桩；仅当显式 `AGENTSENTRY_JUDGE_LLM=1` 且有可用 key 时才用真 LLM。
+
+    provider 选择（显式 AGENTSENTRY_JUDGE_PROVIDER 优先，否则按可用 key 自动挑）：
+      - openai    → OpenAiJudge（OpenAI 兼容，本机 mify/ppio，需 OPENAI_BASE_URL+OPENAI_API_KEY）
+      - anthropic → LLMJudge（需 ANTHROPIC_API_KEY）
+    两条真 judge 都缺 → 回退 StubJudge，保证 CI 可复现、不依赖外部服务。
+    """
+    if os.environ.get("AGENTSENTRY_JUDGE_LLM") != "1":
+        return StubJudge()
+    provider = os.environ.get("AGENTSENTRY_JUDGE_PROVIDER", "").strip().lower()
+    have_openai = bool(os.environ.get("OPENAI_BASE_URL") and os.environ.get("OPENAI_API_KEY"))
+    have_anthropic = bool(os.environ.get("ANTHROPIC_API_KEY"))
+    if provider == "openai" or (not provider and have_openai):
+        if have_openai:
+            return OpenAiJudge()
+    if provider == "anthropic" or (not provider and have_anthropic):
+        if have_anthropic:
+            return LLMJudge(model=os.environ.get("AGENTSENTRY_JUDGE_MODEL", "claude-sonnet-5"))
     return StubJudge()

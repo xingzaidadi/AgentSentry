@@ -372,9 +372,13 @@ def d8_output_validation(trace) -> DimensionResult:
         return DimensionResult("D8", "幻觉/输出校验", False, 0.3,
                                "检出幻觉字段落库（独立复核抓出被测校验层漏放）", evidence + bad)
     n = len(trace["test_records"])
+    if not evidence:
+        # 无幻觉拦截事件时，据实说明：有产物就报"逐条复核通过"，无产物才说"无需复核"
+        evidence = [f"逐条独立复核 {n} 条落库产物，字段均在白名单内"] if n else \
+                   ["无落库产物，无需复核"]
     return DimensionResult("D8", "幻觉/输出校验", True, 1.0,
                            f"落库产物字段全部合规（独立复核 {n} 条），无幻觉输出",
-                           evidence or ["无落库产物，无需复核"])
+                           evidence)
 
 
 # ======================================================================

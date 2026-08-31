@@ -1,0 +1,272 @@
+{
+  "task": {
+    "id": "task_12438ab5",
+    "readable_id": "T-01",
+    "title": "mock_bad_data",
+    "spec": "decompose:造一条订单[bad_data]",
+    "status": "rejected",
+    "mode": "squad"
+  },
+  "agents": [
+    {
+      "id": "agent_9852fbff",
+      "name": "队长",
+      "role": "captain",
+      "visibility": "public",
+      "engine": "mock",
+      "run_count": 2
+    },
+    {
+      "id": "agent_d98c44af",
+      "name": "准入体检",
+      "role": "gatekeeper",
+      "visibility": "public",
+      "engine": "mock",
+      "run_count": 1
+    },
+    {
+      "id": "agent_7284ea86",
+      "name": "数据清洗",
+      "role": "cleaner",
+      "visibility": "public",
+      "engine": "mock",
+      "run_count": 0
+    },
+    {
+      "id": "agent_38e031b9",
+      "name": "执行",
+      "role": "executor",
+      "visibility": "public",
+      "engine": "mock",
+      "run_count": 1
+    },
+    {
+      "id": "agent_25740db8",
+      "name": "查数",
+      "role": "checker",
+      "visibility": "public",
+      "engine": "mock",
+      "run_count": 1
+    }
+  ],
+  "issues": [
+    {
+      "id": "issue_52f72827",
+      "seq": 1,
+      "subspec": "造一条订单[bad_data]",
+      "status": "checked_fail",
+      "attempts": 1,
+      "batch_group": null,
+      "batch_index": null,
+      "batch_total": null
+    }
+  ],
+  "runs": [
+    {
+      "id": "run_2b999089",
+      "agent_role": "captain",
+      "engine": "mock",
+      "issue_id": null,
+      "agent_id": "agent_9852fbff",
+      "parent_run_id": null,
+      "status": "done",
+      "result": "[\"造一条订单[bad_data]\"]",
+      "events": [
+        {
+          "ts": "2026-08-31T08:53:06.586935+00:00",
+          "type": "decompose",
+          "payload": {
+            "spec": "decompose:造一条订单[bad_data]",
+            "subtasks": [
+              "造一条订单[bad_data]"
+            ],
+            "count": 1
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_71adf424",
+      "agent_role": "gatekeeper",
+      "engine": "mock",
+      "issue_id": "issue_52f72827",
+      "agent_id": "agent_d98c44af",
+      "parent_run_id": "run_2b999089",
+      "status": "done",
+      "result": "admitted",
+      "events": [
+        {
+          "ts": "2026-08-31T08:53:06.604812+00:00",
+          "type": "admission",
+          "payload": {
+            "result": "pass",
+            "reason": "上游依赖齐备",
+            "route": "executor"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:06.609691+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "gatekeeper",
+            "to": "executor",
+            "marker": "[准入通过]",
+            "issue_id": "issue_52f72827"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_d93de201",
+      "agent_role": "executor",
+      "engine": "mock",
+      "issue_id": "issue_52f72827",
+      "agent_id": "agent_38e031b9",
+      "parent_run_id": null,
+      "status": "done",
+      "result": "[{\"entity_id\": \"E0408\", \"amount\": 100, \"currency\": \"CNY\", \"status\": \"WRONG_STATUS\", \"qty\": 1}]",
+      "events": [
+        {
+          "ts": "2026-08-31T08:53:06.637232+00:00",
+          "type": "plan",
+          "payload": {
+            "role": "executor",
+            "subspec": "造一条订单[bad_data]",
+            "attempt": 1
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:06.642197+00:00",
+          "type": "tool_call",
+          "payload": {
+            "role": "executor",
+            "tool": "create_record",
+            "args": {
+              "entity_id": "E0408",
+              "amount": 100,
+              "currency": "CNY",
+              "status": "WRONG_STATUS",
+              "qty": 1
+            }
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:06.651384+00:00",
+          "type": "write_testdb",
+          "payload": {
+            "record_key": "E0408",
+            "record": {
+              "entity_id": "E0408",
+              "amount": 100,
+              "currency": "CNY",
+              "status": "WRONG_STATUS",
+              "qty": 1
+            },
+            "written_by": "executor"
+          }
+        },
+        {
+          "ts": "2026-08-31T08:53:06.661456+00:00",
+          "type": "handoff",
+          "payload": {
+            "from": "executor",
+            "to": "checker",
+            "marker": "[执行完成]",
+            "issue_id": "issue_52f72827"
+          }
+        }
+      ],
+      "tokens": {
+        "input": 15,
+        "output": 20,
+        "tool_calls": 1
+      }
+    },
+    {
+      "id": "run_5e598d66",
+      "agent_role": "checker",
+      "engine": "mock",
+      "issue_id": "issue_52f72827",
+      "agent_id": "agent_25740db8",
+      "parent_run_id": "run_2b999089",
+      "status": "done",
+      "result": "checked_fail",
+      "events": [
+        {
+          "ts": "2026-08-31T08:53:06.669968+00:00",
+          "type": "verify",
+          "payload": {
+            "matched": false,
+            "verified_against": "test_records",
+            "field_matched": false,
+            "business_ok": true,
+            "expected_key": "E0408",
+            "actual_count": 1
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    },
+    {
+      "id": "run_2dd613f2",
+      "agent_role": "captain",
+      "engine": "mock",
+      "issue_id": null,
+      "agent_id": "agent_9852fbff",
+      "parent_run_id": null,
+      "status": "done",
+      "result": "refused",
+      "events": [
+        {
+          "ts": "2026-08-31T08:53:06.890198+00:00",
+          "type": "accept_refused",
+          "payload": {
+            "reason": "未满足验收前置条件（存在非 checked_pass 工单）",
+            "offending": [
+              [
+                "issue_52f72827",
+                "checked_fail"
+              ]
+            ]
+          }
+        }
+      ],
+      "tokens": {
+        "input": 0,
+        "output": 0,
+        "tool_calls": 0
+      }
+    }
+  ],
+  "test_records": [
+    {
+      "issue_id": "issue_52f72827",
+      "record_key": "E0408",
+      "record": {
+        "entity_id": "E0408",
+        "amount": 100,
+        "currency": "CNY",
+        "status": "WRONG_STATUS",
+        "qty": 1
+      },
+      "written_by": "executor"
+    }
+  ],
+  "final_state": {
+    "merged": null
+  }
+}
