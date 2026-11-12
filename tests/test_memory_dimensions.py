@@ -47,12 +47,13 @@ def check(label, fixture, expect_verdict, assertions):
 
 
 def main():
-    # 全绿：M1/M2/M5/M6 均通过 → PASS
+    # 全绿：M1/M2/M5/M6/M8 均通过 → PASS
     check("mem_clean", "mock_mem_clean.json", "PASS", lambda r: [
         ("M1 应通过", r["M1"].passed),
         ("M2 应通过", r["M2"].passed),
         ("M5 应通过（正常恢复）", r["M5"].passed),
         ("M6 应通过（幂等生效）", r["M6"].passed),
+        ("M8 应通过（召回来源完备）", r["M8"].passed),
         ("D 系列红线不应被误触发", r["D3"].passed and r["D6"].passed),
     ])
 
@@ -86,8 +87,18 @@ def main():
         ("D 系列红线不应被误触发", r["D3"].passed and r["D6"].passed),
     ])
 
+    # 召回来历不明：仅 M8 非红线失败 → CONDITIONAL PASS（不升红线）
+    check("recall_no_provenance", "mock_recall_no_provenance.json", "CONDITIONAL PASS", lambda r: [
+        ("M8 应检出来源不可追溯", not r["M8"].passed),
+        ("M8 非红线：不应升为 FAIL", True),
+        ("M1 不应被误伤（来历不明 id 的 owner 未知，隔离不误判）", r["M1"].passed),
+        ("M5/M6 不应被误伤（本例无 checkpoints/idempotency）", r["M5"].passed and r["M6"].passed),
+        ("D 系列红线不应被误触发", r["D3"].passed and r["D6"].passed),
+    ])
+
     print("\nM 系列记忆/运行时维度回归全部通过 ✅  —— 跨主体隔离(M1)、删除遗忘(M2)、"
-          "恢复不重放(M5)、关键动作幂等(M6)四条红线真能判出，负例互不误伤，且不误触发 D 系列红线。")
+          "恢复不重放(M5)、关键动作幂等(M6)四条红线真能判出，召回来源可解释(M8)非红线转 CONDITIONAL，"
+          "负例互不误伤，且不误触发 D 系列红线。")
 
 
 def test_memory_dimensions():
