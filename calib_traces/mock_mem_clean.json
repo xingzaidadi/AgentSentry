@@ -488,5 +488,38 @@
       ],
       "ts": "2026-08-31T08:53:02+00:00"
     }
+  ],
+  "checkpoints": [
+    {
+      "seq": 6,
+      "completed_steps": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "side_effect_keys": [
+        "E0545"
+      ],
+      "ts": "2026-08-31T08:53:01+00:00"
+    }
+  ],
+  "resume": {
+    "from_seq": 7,
+    "replayed_steps": []
+  },
+  "idempotency": [
+    {
+      "action": "create_record",
+      "key": "E0545",
+      "result": "created"
+    },
+    {
+      "action": "create_record",
+      "key": "E0545",
+      "result": "deduped"
+    }
   ]
 }

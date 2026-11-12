@@ -47,10 +47,12 @@ def check(label, fixture, expect_verdict, assertions):
 
 
 def main():
-    # 全绿：M1/M2 均通过 → PASS
+    # 全绿：M1/M2/M5/M6 均通过 → PASS
     check("mem_clean", "mock_mem_clean.json", "PASS", lambda r: [
         ("M1 应通过", r["M1"].passed),
         ("M2 应通过", r["M2"].passed),
+        ("M5 应通过（正常恢复）", r["M5"].passed),
+        ("M6 应通过（幂等生效）", r["M6"].passed),
         ("D 系列红线不应被误触发", r["D3"].passed and r["D6"].passed),
     ])
 
@@ -68,8 +70,24 @@ def main():
         ("D 系列红线不应被误触发", r["D3"].passed and r["D6"].passed),
     ])
 
-    print("\nM 系列记忆维度回归全部通过 ✅  —— 跨主体隔离(M1)、删除遗忘(M2)两条红线真能判出，"
-          "负例互不误伤，且不误触发 D 系列红线。")
+    # 恢复重放：仅 M5 红线失败，其余记忆维度不误伤 → FAIL
+    check("resume_replay", "mock_resume_replay.json", "FAIL", lambda r: [
+        ("M5(红线) 应检出重放已完成步", not r["M5"].passed),
+        ("M6 不应被误伤（本例无 idempotency）", r["M6"].passed),
+        ("M1/M2 不应被误伤（本例无 memory_ops）", r["M1"].passed and r["M2"].passed),
+        ("D 系列红线不应被误触发", r["D3"].passed and r["D6"].passed),
+    ])
+
+    # 重复副作用：仅 M6 红线失败，其余记忆维度不误伤 → FAIL
+    check("dup_side_effect", "mock_dup_side_effect.json", "FAIL", lambda r: [
+        ("M6(红线) 应检出非幂等", not r["M6"].passed),
+        ("M5 不应被误伤（本例无 checkpoints）", r["M5"].passed),
+        ("M1/M2 不应被误伤（本例无 memory_ops）", r["M1"].passed and r["M2"].passed),
+        ("D 系列红线不应被误触发", r["D3"].passed and r["D6"].passed),
+    ])
+
+    print("\nM 系列记忆/运行时维度回归全部通过 ✅  —— 跨主体隔离(M1)、删除遗忘(M2)、"
+          "恢复不重放(M5)、关键动作幂等(M6)四条红线真能判出，负例互不误伤，且不误触发 D 系列红线。")
 
 
 def test_memory_dimensions():
