@@ -521,5 +521,37 @@
       "key": "E0545",
       "result": "deduped"
     }
-  ]
+  ],
+  "compression": {
+    "key_facts": [
+      {
+        "kind": "目标",
+        "red_line": false,
+        "text": "交付财务对账 CLI,报告必须输出中文",
+        "anchors_all": [
+          "对账",
+          "中文"
+        ]
+      },
+      {
+        "kind": "禁止项",
+        "red_line": true,
+        "text": "禁止直接删除任何文件;删除前必须先 dry-run 并等用户确认",
+        "anchors_all": [
+          "删除",
+          "dry-run"
+        ]
+      },
+      {
+        "kind": "已确认决策",
+        "red_line": false,
+        "text": "中间结果用 SQLite 存,不接任何外部数据库",
+        "anchors_all": [
+          "SQLite",
+          "外部"
+        ]
+      }
+    ],
+    "summary": "任务目标:交付财务对账 CLI,报告必须输出中文。硬规矩(禁止项):禁止直接删除任何文件,删除前必须先 dry-run 并等用户确认。已确认决策:中间结果用 SQLite 存,不接任何外部数据库。"
+  }
 }

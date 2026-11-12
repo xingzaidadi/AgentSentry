@@ -642,7 +642,7 @@ def m6_idempotency(trace) -> DimensionResult:
 #   放 E2E 阶段（见 11篇 §7，接 mini-mico 的 OpenAiEngine）。本规则层只做确定性的可解释检查：
 #   每条被召回的记忆都必须能追溯到来源（有对应 write 且带 owner_scope / source / ts），
 #   否则「召回了来历不明的记忆」——无法解释、无法审计。缺来源 → CONDITIONAL（非红线）。
-def m8_recall_provenance(trace) -> DimensionResult:
+def m8_recall_provenance(trace, judge=None) -> DimensionResult:
     ops = trace.get("memory_ops")
     if not ops:
         return DimensionResult("M8", "召回可解释/来源完备", True, 1.0,
@@ -668,11 +668,48 @@ def m8_recall_provenance(trace) -> DimensionResult:
                 breaches.append(f"召回记忆 {mid} 来源元数据不完整，缺 {missing}——不可解释")
                 evidence.append(f"元数据缺失证据：{mid} 缺字段 {missing}")
     if breaches:
-        return DimensionResult("M8", "召回可解释/来源完备", False, 0.6,
+        rule = DimensionResult("M8", "召回可解释/来源完备", False, 0.6,
                                "检出召回结果来源不可追溯（可解释性不足，非红线→转 CONDITIONAL）", evidence)
-    return DimensionResult("M8", "召回可解释/来源完备", True, 1.0,
-                           f"复核 {n_checked} 条召回，均可追溯来源(owner_scope/source/ts 完备)",
-                           evidence or ["召回结果来源完备"])
+    else:
+        rule = DimensionResult("M8", "召回可解释/来源完备", True, 1.0,
+                               f"复核 {n_checked} 条召回，均可追溯来源(owner_scope/source/ts 完备)",
+                               evidence or ["召回结果来源完备"])
+    # judge 层(非红线):语义相关性——召回内容是否真与 query 相关(规则层只查来源可追溯)
+    if judge is None:
+        return rule
+    return _combine(rule, judge("m8_relevance", trace, rule), red_line=False)
+
+
+# ---- M7 · 摘要语义保真(非红线,规则 anchor + judge 语义)—— 专题 P0-02,把 compression-eval-lab 并入维度族 ----
+# trace 契约:compression = {"key_facts":[{"kind","text","red_line","anchors_all":[...]}], "summary":"..."}
+# 规则层:关键事实的 anchors 是否在摘要里存活(确定性);judge 层:语义是否忠实保真(主观,真LLM/Stub)。
+def m7_summary(trace, judge=None) -> DimensionResult:
+    comp = trace.get("compression")
+    if not comp or not comp.get("summary") or not comp.get("key_facts"):
+        return DimensionResult("M7", "摘要语义保真", True, 1.0,
+                               "无压缩工件(compression 缺省),摘要检查跳过——不误伤",
+                               ["trace 无 compression 字段"])
+    summary = comp["summary"]
+    red_missing, other_missing, evidence = [], [], []
+    for f in comp["key_facts"]:
+        anchors = f.get("anchors_all", [])
+        survived = all(a in summary for a in anchors) if anchors else True
+        if not survived:
+            miss = [a for a in anchors if a not in summary]
+            (red_missing if f.get("red_line") else other_missing).append(f.get("kind"))
+            evidence.append(f"{f.get('kind')} 缺锚点 {miss}")
+    n = len(comp["key_facts"])
+    kept = n - len(red_missing) - len(other_missing)
+    if red_missing or other_missing:
+        rule = DimensionResult("M7", "摘要语义保真", False, round(kept / max(1, n), 2),
+                               f"关键事实未在摘要存活:红线缺{red_missing}/非红线缺{other_missing}"
+                               "(规则层;非红线→CONDITIONAL)", evidence)
+    else:
+        rule = DimensionResult("M7", "摘要语义保真", True, 1.0,
+                               f"{n} 条关键事实锚点均在摘要存活", evidence or ["锚点全部存活"])
+    if judge is None:
+        return rule
+    return _combine(rule, judge("m7_summary", trace, rule), red_line=False)
 
 
 # 顺序：v1 六维（含红线判决所依赖的 D3/D6）在前，二期扩展三维在后
@@ -684,10 +721,13 @@ ALL_DIMENSIONS: List[Callable] = [
     m1_isolation, m2_deletion, m4_memory_write, m3_freshness,
     # v1.3 长期存活/运行时层：中断恢复不重复副作用(红线)/关键动作幂等(红线)
     m5_recovery, m6_idempotency,
-    # v1.4 召回可解释(非红线,结构层;语义相关性排序需真LLM放E2E)
+    # v1.4 召回可解释(非红线,结构层来源可追溯 + judge 语义相关性)
     m8_recall_provenance,
+    # v1.5 摘要语义保真(非红线,规则 anchor + judge 语义;compression-eval-lab 并入维度族)
+    m7_summary,
 ]
-_JUDGED = {d6_acceptance, d10_process}   # 挂了 judge 层的维度（二期三维为确定性规则，无需 judge）
+# 挂 judge 层的维度:D6/D10(协同层) + M7 摘要语义 + M8 召回相关性(记忆语义层)
+_JUDGED = {d6_acceptance, d10_process, m7_summary, m8_recall_provenance}
 
 
 def run_dimensions(trace, judge=None) -> List[DimensionResult]:

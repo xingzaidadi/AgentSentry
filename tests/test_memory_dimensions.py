@@ -54,6 +54,7 @@ def main():
         ("M5 应通过（正常恢复）", r["M5"].passed),
         ("M6 应通过（幂等生效）", r["M6"].passed),
         ("M8 应通过（召回来源完备）", r["M8"].passed),
+        ("M7 应通过（摘要保真,好摘要）", r["M7"].passed),
         ("D 系列红线不应被误触发", r["D3"].passed and r["D6"].passed),
     ])
 
@@ -96,8 +97,16 @@ def main():
         ("D 系列红线不应被误触发", r["D3"].passed and r["D6"].passed),
     ])
 
+    # 摘要丢禁止项：仅 M7 非红线失败 → CONDITIONAL PASS（StubJudge 离线也能判锚点存活）
+    check("summary_drop_ban", "mock_summary_drop_ban.json", "CONDITIONAL PASS", lambda r: [
+        ("M7 应检出禁止项未在摘要存活", not r["M7"].passed),
+        ("M7 非红线：不应升为 FAIL", True),
+        ("M1/M2 不应被误伤（本例无 memory_ops）", r["M1"].passed and r["M2"].passed),
+        ("D 系列红线不应被误触发", r["D3"].passed and r["D6"].passed),
+    ])
+
     print("\nM 系列记忆/运行时维度回归全部通过 ✅  —— 跨主体隔离(M1)、删除遗忘(M2)、"
-          "恢复不重放(M5)、关键动作幂等(M6)四条红线真能判出，召回来源可解释(M8)非红线转 CONDITIONAL，"
+          "恢复不重放(M5)、关键动作幂等(M6)四条红线真能判出，召回来源可解释(M8)/摘要保真(M7)非红线转 CONDITIONAL，"
           "负例互不误伤，且不误触发 D 系列红线。")
 
 
